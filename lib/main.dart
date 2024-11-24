@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_core/firebase_core.dart';
-// import 'package:firebase_ml_model_downloader/firebase_ml_model_downloader.dart';
-import 'package:google_mlkit_image_labeling/google_mlkit_image_labeling.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_mlkit_image_labeling/google_mlkit_image_labeling.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +19,6 @@ void main() async {
       measurementId: dotenv.env['MEASUREMENT_ID']!,
     ),
   );
-  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -41,25 +39,26 @@ class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => HPState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class HPState extends State<HomePage> {
+class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ML Kit Image Labeler'),
+        title: const Text('Image Labeler'),
       ),
       drawer: Drawer(
         child: ListView(
           children: [
             ListTile(
-              title: const Text('Image Labeler'),
+              title: const Text('Image Labeling Screen'),
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ImageLabelingScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => const ImageLabelingScreen()),
                 );
               },
             ),
@@ -67,7 +66,7 @@ class HPState extends State<HomePage> {
         ),
       ),
       body: const Center(
-        child: Text('Welcome to ML Kit Image Labeler!'),
+        child: Text('Welcome to Image Labeler!'),
       ),
     );
   }
@@ -77,34 +76,40 @@ class ImageLabelingScreen extends StatefulWidget {
   const ImageLabelingScreen({super.key});
 
   @override
-  ImgLabelState createState() => ImgLabelState();
+  _ImageLabelingScreenState createState() => _ImageLabelingScreenState();
 }
 
-class ImgLabelState extends State<ImageLabelingScreen> {
+class _ImageLabelingScreenState extends State<ImageLabelingScreen> {
   File? img;
   final picker = ImagePicker();
-  List<Map<String, dynamic>> _labels_ = [];
-
-  Future<void> process(File image) async { //processing the image
+  List<Map<String, dynamic>> labels = [];
+  Future<void> processImage(File image) async {
     final inputImage = InputImage.fromFile(image);
     final labeler = ImageLabeler(options: ImageLabelerOptions());
-    final labels = await labeler.processImage(inputImage);
 
-    setState(() {
-      _labels_ = labels.map((e) => {'text': e.toString(), 'confidence': e.confidence}).toList();
-    });
-
-    labeler.close();
+    try {
+      final results = await labeler.processImage(inputImage);
+      setState(() {
+        labels = results
+            .map((e) => {'label': e.label, 'confidence': e.confidence})
+            .toList();
+      });
+    } catch (e) {
+      print('Error processing image: $e');
+    } finally {
+      labeler.close();
+    }
   }
 
-  Future<void> getImg(ImageSource source) async {
+  Future<void> getImage(ImageSource source) async {
     final pickedFile = await picker.pickImage(source: source);
     if (pickedFile != null) {
-      final image = File(pickedFile.path);
+      final file = File(pickedFile.path);
       setState(() {
-        img = image;
+        img = file;
+        labels.clear();
       });
-      await process(image);
+      await processImage(file);
     }
   }
 
@@ -121,21 +126,21 @@ class ImgLabelState extends State<ImageLabelingScreen> {
             Image.file(img!, height: 200, width: 200, fit: BoxFit.cover),
           const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () => getImg(ImageSource.gallery),
-            child: const Text('Select Image'),
+            onPressed: () => getImage(ImageSource.gallery),
+            child: const Text('Select Image from Gallery'),
           ),
           ElevatedButton(
-            onPressed: () => getImg(ImageSource.camera),
-            child: const Text('Capture Image'),
+            onPressed: () => getImage(ImageSource.camera),
+            child: const Text('Capture Image with Camera'),
           ),
           const SizedBox(height: 20),
           Expanded(
             child: ListView.builder(
-              itemCount: _labels_.length,
+              itemCount: labels.length,
               itemBuilder: (context, index) {
-                final label = _labels_[index];
+                final label = labels[index];
                 return ListTile(
-                  title: Text(label['text']),
+                  title: Text(label['label']),
                   subtitle: Text(
                     'Confidence: ${(label['confidence'] * 100).toStringAsFixed(2)}%',
                   ),
