@@ -164,18 +164,18 @@ packages:
     dependency: transitive
     description:
       name: google_mlkit_commons
-      sha256: af63771903947d5523d9e991a939a4b8bf994f11661c9b9c8a71d7d3997115f8
+      sha256: e1afd6aafe2f8c5078dff3875b5c2544a4c9d1ab5f1ec58af885d558b95b3eaa
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.0"
+    version: "0.1.0"
   google_mlkit_image_labeling:
     dependency: "direct main"
     description:
       name: google_mlkit_image_labeling
-      sha256: bfbcb638bb3397b559ba77e544db7582a38a9841345d17382a89611ef8785f9f
+      sha256: "1c6f61f532283966a1a52042f33f824a004b98afdf817e0aff0319f7ca3b2631"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.0"
+    version: "0.1.0"
   http:
     dependency: transitive
     description:

@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_mlkit_image_labeling/google_mlkit_image_labeling.dart';
 
+// Only runs on Android because of mlkit
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
@@ -39,10 +40,10 @@ class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HomePage> createState() => HPState();
 }
 
-class _HomePageState extends State<HomePage> {
+class HPState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -123,7 +124,7 @@ class _ImageLabelingScreenState extends State<ImageLabelingScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (img != null)
-            Image.file(img!, height: 200, width: 200, fit: BoxFit.cover),
+            Image.network(img!.toString(), height: 200, width: 200, fit: BoxFit.cover),
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: () => getImage(ImageSource.gallery),
